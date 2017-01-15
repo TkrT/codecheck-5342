@@ -10,7 +10,7 @@ import numpy
 
 def main(argv):
     #jsonを用いてキーワードをパース
-    jsonString = u'{"keywords":' + argv[0].decode(sys.stdin.encoding) + u'}'
+    jsonString = u'{"keywords":' + argv[0].decode('utf-8') + u'}'
     jsonComponent = json.loads(jsonString)
     keywordNumber = len(jsonComponent[u'keywords'])
 
