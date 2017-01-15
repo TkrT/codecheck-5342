@@ -8,8 +8,6 @@ import urllib2
 import xml.etree.ElementTree as ET
 import numpy
 
-#更新
-
 def main(argv):
     #jsonを用いてキーワードをパース
     jsonString = u'{"keywords":' + argv[0].decode('utf-8') + u'}'
@@ -20,48 +18,48 @@ def main(argv):
     startDate = dt.strptime(argv[1], u'%Y-%m-%d')
     endDate = dt.strptime(argv[2], u'%Y-%m-%d')
 
+    #日数を取得
+    dateNum = (endDate - startDate).days + 1
+
+    #端数を削除し、週数を取得
+    dateFraction = dateNum % 7
+    endDate - datetime.timedelta(days=dateFraction)
+    dateNum -= dateFraction
+    weekNum = dateNum // 7
+
     #件数保存用の配列を初期化
     numbersArray = []
     for i in range(0, keywordNumber):
         numbersArray.append([])
+        for j in range(0, weekNum):
+            numbersArray[i].append(0)
 
     #記事検索
-    weekStartDate = startDate
-    while True:
-        #検索期間の設定
-        weekEndDate = weekStartDate + datetime.timedelta(days=6)
-        if (weekEndDate > endDate):
-            #端数が出たら無視
-            weekEndDate = endDate
-            break
+    for i in range(0, keywordNumber):
+        #キーワードと検索期間からクエリを作成
+        v = jsonComponent[u'keywords'][i]
+        urlprefix = 'http://54.92.123.84/search?'
+        query = [
+            ('ackey', '869388c0968ae503614699f99e09d960f9ad3e12'),
+            ('q', 'Body:' + urllib.quote(v.encode('utf-8')) + '%20AND%20' + 'ReleaseDate:[' + startDate.strftime('%Y-%m-%d') + '%20TO%20' + endDate.strftime('%Y-%m-%d') + ']'),
+        ]
 
-        #記事検索
-        for i in range(0, keywordNumber):
-            #キーワードと検索期間からクエリを作成
-            v = jsonComponent[u'keywords'][i]
-            urlprefix = 'http://54.92.123.84/search?'
-            query = [
-                ('ackey', '869388c0968ae503614699f99e09d960f9ad3e12'),
-                ('q', 'Body:' + urllib.quote(v.encode('utf-8')) + '%20AND%20' + 'ReleaseDate:[' + weekStartDate.strftime('%Y-%m-%d') + '%20TO%20' + weekEndDate.strftime('%Y-%m-%d') + ']'),
-            ]
+        #URLの形に整形
+        url = urlprefix
+        for item in query:
+            url += item[0] + "=" + item[1] + "&"
+        url = url[:-1]
 
-            #URLの形に整形
-            url = urlprefix
-            for item in query:
-                url += item[0] + "=" + item[1] + "&"
-            url = url[:-1]
+        #レスポンスを取得
+        response = urllib2.urlopen(url)
+        resdata = response.read()
 
-            #レスポンスを取得
-            response = urllib2.urlopen(url)
-            resdata = response.read()
-
-            #XMLを解析して件数を取得
-            root = ET.fromstring(resdata)
-            result = root.find('.//result')
-            numbersArray[i].append(int(result.get('numFound')))
-
-        #次の検索期間へ
-        weekStartDate = weekEndDate + datetime.timedelta(days=1)
+        #XMLを解析して件数を取得
+        root = ET.fromstring(resdata)
+        for e in root.getiterator("ReleaseDate"):
+            releseDate = dt.strptime(e.text, u'%Y-%m-%d')
+            week = (releseDate - startDate).days // 7
+            numbersArray[i][week] += 1
 
     #相関係数保存用の配列を初期化
     coefficientsArray = []
