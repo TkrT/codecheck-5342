@@ -40,7 +40,7 @@ def main(argv):
             urlprefix = 'http://54.92.123.84/search?'
             query = [
                 ('ackey', '869388c0968ae503614699f99e09d960f9ad3e12'),
-                ('q', 'Body:' + urllib.quote(v) + '%20AND%20' + 'ReleaseDate:[' + weekStartDate.strftime('%Y-%m-%d') + '%20TO%20' + weekEndDate.strftime('%Y-%m-%d') + ']'),
+                ('q', 'Body:' + urllib.quote(v.encode('utf-8')) + '%20AND%20' + 'ReleaseDate:[' + weekStartDate.strftime('%Y-%m-%d') + '%20TO%20' + weekEndDate.strftime('%Y-%m-%d') + ']'),
             ]
 
             #URLの形に整形
@@ -80,7 +80,7 @@ def main(argv):
         query = [
             ('appid', 'dj0zaiZpPU84QnlScDdxM1p5NSZzPWNvbnN1bWVyc2VjcmV0Jng9MjY-'),
             ('results', 'ma'),
-            ('sentence', urllib.quote(v))
+            ('sentence', urllib.quote(v.encode('utf-8')))
         ]
 
         #URLの形に整形
