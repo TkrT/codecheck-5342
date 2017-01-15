@@ -10,7 +10,7 @@ import numpy
 
 def main(argv):
     #jsonを用いてキーワードをパース
-    jsonString = u'{"keywords":' + argv[0] + u'}'
+    jsonString = u'{"keywords":' + argv[0].decode('utf-8') + u'}'
     jsonComponent = json.loads(jsonString)
     keywordNumber = len(jsonComponent[u'keywords'])
 
@@ -121,7 +121,10 @@ def main(argv):
     string    = string[:-1]
     string += '],"posChecker":'
     #品詞がすべて等しいかを出力
-    string += str(posChecker)
+    if (posChecker):
+        string += 'true'
+    else:
+        string += 'false'
     string += '}'
 
     #出力
