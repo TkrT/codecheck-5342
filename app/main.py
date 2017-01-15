@@ -6,7 +6,7 @@ from datetime import datetime as dt
 import urllib
 import urllib2
 import xml.etree.ElementTree as ET
-import scipy.stats
+import numpy
 
 def main(argv):
     #jsonを用いてキーワードをパース
@@ -69,7 +69,7 @@ def main(argv):
     #相関係数の計算
     for i in range(0, keywordNumber):
         for j in range(0, keywordNumber):
-            coefficientsArray[i].append(scipy.stats.pearsonr(numbersArray[i], numbersArray[j]))
+            coefficientsArray[i].append(numpy.corrcoef(numbersArray[i], numbersArray[j])[0, 1])
 
     #形態要素解析
     posArray = []
@@ -114,7 +114,7 @@ def main(argv):
                 string += "1"
             else:
                 #違う要素なら相関係数を小数点以下3桁で出力
-                string += str(round(coefficientsArray[i][j][0],3))
+                string += str(round(coefficientsArray[i][j],3))
             string += ','
         string    = string[:-1]
         string += '],'
