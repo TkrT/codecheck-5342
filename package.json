@@ -1,0 +1,19 @@
+{
+  "name": "challenge-asahi-api",
+  "version": "1.0.0",
+  "description": "codecheck challenge",
+  "author": "Givery",
+  "dependencies": {
+    "compute-pcorr": "^1.0.0",
+    "minimist": "^1.2.0",
+    "request": "^2.75.0",
+    "request-promise": "^4.1.1"
+  },
+  "devDependencies": {
+    "codecheck": "^0.5.6",
+    "chai": "^3.5.0",
+    "mocha": "1.x.x",
+    "coveralls": "^2.11.1",
+    "istanbul": "^0.3.0"
+  }
+}
