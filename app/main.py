@@ -11,7 +11,7 @@ import numpy
 def main(argv):
     #jsonを用いてキーワードをパース
     jsonString = u'{"keywords":' + argv[0] + u'}'
-    jsonComponent = json.loads(jsonstring)
+    jsonComponent = json.loads(jsonString)
     keywordNumber = len(jsonComponent[u'keywords'])
 
     #開始日時と終了日時をパース
