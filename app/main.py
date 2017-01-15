@@ -10,7 +10,7 @@ import numpy
 
 def main(argv):
     #jsonを用いてキーワードをパース
-    jsonString = u'{"keywords":' + argv[0].decode('utf-8') + u'}'
+    jsonString = u'{"keywords":' + argv[0].decode(sys.stdin.encoding) + u'}'
     jsonComponent = json.loads(jsonString)
     keywordNumber = len(jsonComponent[u'keywords'])
 
@@ -23,7 +23,7 @@ def main(argv):
 
     #端数を削除し、週数を取得
     dateFraction = dateNum % 7
-    endDate - datetime.timedelta(days=dateFraction)
+    endDate = endDate - datetime.timedelta(days=dateFraction)
     dateNum -= dateFraction
     weekNum = dateNum // 7
 
@@ -56,10 +56,42 @@ def main(argv):
 
         #XMLを解析して件数を取得
         root = ET.fromstring(resdata)
-        for e in root.getiterator("ReleaseDate"):
-            releseDate = dt.strptime(e.text, u'%Y-%m-%d')
-            week = (releseDate - startDate).days // 7
-            numbersArray[i][week] += 1
+        result = root.find('.//result')
+        number = int(result.get('numFound'))
+
+        #週ごとに分類
+        index = 0
+        while True:
+            #キーワードと検索期間からクエリを作成
+            urlprefix = 'http://54.92.123.84/search?'
+            query = [
+                ('ackey', '869388c0968ae503614699f99e09d960f9ad3e12'),
+                ('q', 'Body:' + urllib.quote(v.encode('utf-8')) + '%20AND%20' + 'ReleaseDate:[' + startDate.strftime('%Y-%m-%d') + '%20TO%20' + endDate.strftime('%Y-%m-%d') + ']'),
+                ('start', str(index)),
+                ('rows', '100'),
+            ]
+            
+            #URLの形に整形
+            url = urlprefix
+            for item in query:
+                url += item[0] + "=" + item[1] + "&"
+            url = url[:-1]
+
+            #レスポンスを取得
+            response = urllib2.urlopen(url)
+            resdata = response.read()
+
+            #XMLを解析して件数を取得
+            root = ET.fromstring(resdata)
+            for e in root.getiterator("ReleaseDate"):
+                releseDate = dt.strptime(e.text, u'%Y-%m-%d')
+                week = (releseDate - startDate).days // 7
+                numbersArray[i][week] += 1
+
+            #インデックスを更新
+            if (index > number):
+                break
+            index += 100
 
     #相関係数保存用の配列を初期化
     coefficientsArray = []
