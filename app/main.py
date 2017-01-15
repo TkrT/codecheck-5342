@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 def main(argv):
   for v in argv:
     print(v)
