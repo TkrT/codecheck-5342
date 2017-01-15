@@ -36,7 +36,9 @@ def main(argv):
 
     #記事検索
     for i in range(0, keywordNumber):
-        #週ごとに分類
+        v = jsonComponent[u'keywords'][i]
+
+        #件数を取得
         index = 0
         while True:
             #キーワードと検索期間からクエリを作成
