@@ -8,6 +8,8 @@ import urllib2
 import xml.etree.ElementTree as ET
 import numpy
 
+#更新
+
 def main(argv):
     #jsonを用いてキーワードをパース
     jsonString = u'{"keywords":' + argv[0].decode('utf-8') + u'}'
