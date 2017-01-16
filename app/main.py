@@ -14,10 +14,10 @@ def main(argv):
     jsonComponent = json.loads(jsonString)
     keywordNumber = len(jsonComponent[u'keywords'])
  
-    #UTF-8のキーワードリストを作成
+    #UTF-8、URLエンコード済みのキーワードリストを作成
     Keywords = []
     for i in range(0, keywordNumber):
-        Keywords.append(jsonComponent[u'keywords'][i].encode('utf-8'))
+        Keywords.append(urllib.quote(jsonComponent[u'keywords'][i].encode('utf-8')))
 
     #開始日時と終了日時をパース
     startDate = dt.strptime(argv[1], u'%Y-%m-%d')
@@ -39,48 +39,49 @@ def main(argv):
         for j in range(0, weekNum):
             numbersArray[i].append(0)
 
-    #クエリのプレフィックスを作成
-    q = 'Body:' + Keywords[0]
-    for i in range(1, keywordNumber):
-        q += ' OR Body:' + Keywords[i]
-    q += ' AND ReleaseDate:[' + startDate.strftime('%Y-%m-%d') + ' TO ' + endDate.strftime('%Y-%m-%d') + ']'
-    urlprefix  = 'http://54.92.123.84/search?'
-    urlprefix += 'ackey=869388c0968ae503614699f99e09d960f9ad3e12&'
-    urlprefix += 'q=' + urllib.quote(q) + '&'
-    urlprefix += 'rows=100&'
+    #記事検索
+    for i in range(0, keywordNumber):
+        v = Keywords[i]
 
-    #件数を取得
-    number = -1
-    index = 0
-    while True:
-        #クエリを作成
-        url = urlprefix + 'start=' + str(index)
+        #件数を取得
+        number = -1
+        index = 0
+        while True:
+            #キーワードと検索期間からクエリを作成
+            urlprefix = 'http://54.92.123.84/search?'
+            query = [
+                ('ackey', '869388c0968ae503614699f99e09d960f9ad3e12'),
+                ('q', 'Body%3A' + v + '%20AND%20' + 'ReleaseDate%3A%5B' + startDate.strftime('%Y-%m-%d') + '%20TO%20' + endDate.strftime('%Y-%m-%d') + '%5D'),
+                ('start', str(index)),
+                ('rows', '100'),
+            ]
+            
+            #URLの形に整形
+            url = urlprefix
+            for item in query:
+                url += item[0] + "=" + item[1] + "&"
+            url = url[:-1]
 
-        #レスポンスを取得
-        response = urllib2.urlopen(url)
-        resdata = response.read()
+            #レスポンスを取得
+            response = urllib2.urlopen(url)
+            resdata = response.read()
 
-        #XMLを解析して件数を取得
-        root = ET.fromstring(resdata)
-        if (number == -1):
-            result = root.find('.//result')
-            number = int(result.get('numFound'))
+            #XMLを解析して件数を取得
+            root = ET.fromstring(resdata)
+            if (number == -1):
+                result = root.find('.//result')
+                number = int(result.get('numFound'))
 
-        #XMLを解析して週別の件数を取得
-        for e in root.getiterator('doc'):
-            rd = e.find('.//ReleaseDate')
-            releseDate = dt.strptime(rd.text, u'%Y-%m-%d')
-            week = (releseDate - startDate).days // 7
+            #XMLを解析して週別の件数を取得
+            for e in root.getiterator("ReleaseDate"):
+                releseDate = dt.strptime(e.text, u'%Y-%m-%d')
+                week = (releseDate - startDate).days // 7
+                numbersArray[i][week] += 1
 
-            body = e.find('.//Body')
-            for i in range(0, keywordNumber):
-                if (Keywords[i] in body.text):
-                    numbersArray[i][week] += 1
-
-        #インデックスを更新
-        if (index > number):
-            break
-        index += 100
+            #インデックスを更新
+            if (index > number):
+                break
+            index += 100
 
     #相関係数保存用の配列を初期化
     coefficientsArray = []
@@ -95,7 +96,6 @@ def main(argv):
             else:
                 coefficientsArray[i].append(1)
 
-
     #形態要素解析
     posArray = []
 
@@ -107,7 +107,7 @@ def main(argv):
     query = [
         ('appid', 'dj0zaiZpPU84QnlScDdxM1p5NSZzPWNvbnN1bWVyc2VjcmV0Jng9MjY-'),
         ('results', 'ma'),
-        ('sentence', urllib.quote(sentence.encode('utf-8')))
+        ('sentence', sentence)
     ]
 
     #URLの形に整形
@@ -132,7 +132,7 @@ def main(argv):
     for pos in posArray:
         if (posArray[0] != pos):
             posChecker = False
- 
+
     #出力を整形
     string = '{"coefficients":['
     for i in range(0, keywordNumber):
