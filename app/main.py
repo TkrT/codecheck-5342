@@ -40,14 +40,14 @@ def main(argv):
             numbersArray[i].append(0)
 
     #クエリのプレフィックスを作成
+    q = 'Body:' + Keywords[0]
+    for i in range(1, keywordNumber):
+        q += ' OR Body:' + Keywords[i]
+    q += ' AND ReleaseDate:[' + startDate.strftime('%Y-%m-%d') + ' TO ' + endDate.strftime('%Y-%m-%d') + ']'
     urlprefix  = 'http://54.92.123.84/search?'
     urlprefix += 'ackey=869388c0968ae503614699f99e09d960f9ad3e12&'
-    urlprefix += 'q=Body:' + Keywords[0]
-    for i in range(1, keywordNumber):
-        urlprefix += ' OR Body:' + Keywords[i]
-    urlprefix += ' AND ReleaseDate:[' + startDate.strftime('%Y-%m-%d') + '%20TO%20' + endDate.strftime('%Y-%m-%d') + ']&'
+    urlprefix += 'q=' + urllib.quote(q) + '&'
     urlprefix += 'rows=100&'
-    urlprefix = urllib.quote(urlprefix)
 
     #件数を取得
     number = -1
@@ -68,7 +68,7 @@ def main(argv):
 
         #XMLを解析して週別の件数を取得
         for e in root.getiterator('doc'):
-            rd = e.find('.//ReleseDate')
+            rd = e.find('.//ReleaseDate')
             releseDate = dt.strptime(rd.text, u'%Y-%m-%d')
             week = (releseDate - startDate).days // 7
 
@@ -123,9 +123,8 @@ def main(argv):
     #XMLを解析して品詞を取得
     root = ET.fromstring(resdata)
     for e in root.getiterator('{urn:yahoo:jp:jlp}word'):
-        surface = e.find('.//{urn:yahoo:jp:jlp}surface')
-        if (surface.text != ','):
-            pos = e.find('.//{urn:yahoo:jp:jlp}pos')
+        pos = e.find('.//{urn:yahoo:jp:jlp}pos')
+        if (pos.text != '特殊'):
             posArray.append(pos.text)
 
     #品詞がすべて等しいかを確認
