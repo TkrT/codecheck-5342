@@ -14,7 +14,7 @@ def main(argv):
     jsonComponent = json.loads(jsonString)
     keywordNumber = len(jsonComponent[u'keywords'])
  
-    #UTF-8、URLエンコード済みのキーワードリストを作成
+    #UTF-8かつURLエンコード済みのキーワードリストを作成
     Keywords = []
     for i in range(0, keywordNumber):
         Keywords.append(urllib.quote(jsonComponent[u'keywords'][i].encode('utf-8')))
