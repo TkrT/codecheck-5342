@@ -94,13 +94,16 @@ def main(argv):
     #相関係数の計算
     for i in range(0, keywordNumber):
         for j in range(0, keywordNumber):
-            if ((totalNumbersArray[i] != 0) and (totalNumbersArray[j] != 0)):
-                if (i != j):
-                    coefficientsArray[i].append(numpy.corrcoef(numbersArray[i], numbersArray[j])[0, 1])
+            if (i <= j):
+                if ((totalNumbersArray[i] != 0) and (totalNumbersArray[j] != 0)):
+                    if (i != j):
+                        coefficientsArray[i].append(numpy.corrcoef(numbersArray[i], numbersArray[j])[0, 1])
+                    else:
+                        coefficientsArray[i].append(1)
                 else:
-                    coefficientsArray[i].append(1)
+                    coefficientsArray[i].append(0)
             else:
-                coefficientsArray[i].append(0)
+                coefficientsArray[i].append(coefficientsArray[j][i])
 
     #形態要素解析
     posArray = []
