@@ -33,8 +33,10 @@ def main(argv):
     weekNum = dateNum // 7
 
     #件数保存用の配列を初期化
+    totalNumbersArray = []
     numbersArray = []
     for i in range(0, keywordNumber):
+        totalNumbersArray.append(0)
         numbersArray.append([])
         for j in range(0, weekNum):
             numbersArray[i].append(0)
@@ -76,6 +78,7 @@ def main(argv):
             for e in root.getiterator("ReleaseDate"):
                 releseDate = dt.strptime(e.text, u'%Y-%m-%d')
                 week = (releseDate - startDate).days // 7
+                totalNumbersArray[i] += 1
                 numbersArray[i][week] += 1
 
             #インデックスを更新
@@ -91,10 +94,13 @@ def main(argv):
     #相関係数の計算
     for i in range(0, keywordNumber):
         for j in range(0, keywordNumber):
-            if (i != j):
-                coefficientsArray[i].append(numpy.corrcoef(numbersArray[i], numbersArray[j])[0, 1])
+            if ((totalNumbersArray[i] != 0) and (totalNumbersArray[j] != 0)):
+                if (i != j):
+                    coefficientsArray[i].append(numpy.corrcoef(numbersArray[i], numbersArray[j])[0, 1])
+                else:
+                    coefficientsArray[i].append(1)
             else:
-                coefficientsArray[i].append(1)
+                coefficientsArray[i].append(0)
 
     #形態要素解析
     posArray = []
@@ -138,12 +144,16 @@ def main(argv):
     for i in range(0, keywordNumber):
         string += '['
         for j in range(0, keywordNumber):
-            if (i == j):
-                #同じ要素なら"1"を出力
-                string += "1"
+            if ((totalNumbersArray[i] != 0) and (totalNumbersArray[j] != 0)):
+                if (i == j):
+                    #同じ要素なら"1"を出力
+                    string += "1"
+                else:
+                    #違う要素なら相関係数を小数点以下3桁で出力
+                    string += str(round(coefficientsArray[i][j],3))
             else:
-                #違う要素なら相関係数を小数点以下3桁で出力
-                string += str(round(coefficientsArray[i][j],3))
+                #どちらかが0ならnull
+                string += 'null'
             string += ','
         string    = string[:-1]
         string += '],'
