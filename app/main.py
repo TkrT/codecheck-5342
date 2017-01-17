@@ -156,16 +156,16 @@ def main(argv):
     for i in range(0, keywordNumber):
         string += '['
         for j in range(0, keywordNumber):
-            if ((totalNumbersArray[i] != 0) and (totalNumbersArray[j] != 0)):
-                if (i == j):
-                    #同じ要素なら"1"を出力
-                    string += "1"
-                else:
+            if (i == j):
+                #同じ要素なら"1"を出力
+                string += "1"
+            else:
+                if ((totalNumbersArray[i] != 0) and (totalNumbersArray[j] != 0)):
                     #違う要素なら相関係数を小数点以下3桁で出力
                     string += str(round(coefficientsArray[i][j],3))
-            else:
-                #どちらかが0ならnull
-                string += 'null'
+                else:
+                    #どちらかが0ならnullを出力
+                    string += 'null'
             string += ','
         string    = string[:-1]
         string += '],'
