@@ -3,21 +3,21 @@ import sys
 import json
 import datetime
 from datetime import datetime as dt
-import urllib
-import urllib2
+import urllib.parse
+import urllib.request
 import xml.etree.ElementTree as ET
 import numpy
 
 def main(argv):
     #jsonを用いてキーワードをパース
-    jsonString = u'{"keywords":' + argv[0].decode('utf-8') + u'}'
+    jsonString = '{"keywords":' + argv[0] + '}'
     jsonComponent = json.loads(jsonString)
     keywordNumber = len(jsonComponent[u'keywords'])
  
     #UTF-8かつURLエンコード済みのキーワードリストを作成
     Keywords = []
     for i in range(0, keywordNumber):
-        Keywords.append(urllib.quote(jsonComponent[u'keywords'][i].encode('utf-8')))
+        Keywords.append(urllib.parse.quote(jsonComponent[u'keywords'][i].encode('utf-8')))
 
     #開始日時と終了日時をパース
     startDate = dt.strptime(argv[1], u'%Y-%m-%d')
@@ -33,13 +33,8 @@ def main(argv):
     weekNum = dateNum // 7
 
     #件数保存用の配列を初期化
-    totalNumbersArray = []
-    numbersArray = []
-    for i in range(0, keywordNumber):
-        totalNumbersArray.append(0)
-        numbersArray.append([])
-        for j in range(0, weekNum):
-            numbersArray[i].append(0)
+    totalNumbersArray = numpy.zeros(keywordNumber)
+    numbersArray = numpy.zeros([keywordNumber, weekNum])
 
     #記事検索
     for i in range(0, keywordNumber):
@@ -65,7 +60,7 @@ def main(argv):
             url = url[:-1]
 
             #レスポンスを取得
-            response = urllib2.urlopen(url)
+            response = urllib.request.urlopen(url)
             resdata = response.read()
 
             #XMLを解析して件数を取得
@@ -87,9 +82,7 @@ def main(argv):
             index += 100
 
     #相関係数保存用の配列を初期化
-    coefficientsArray = []
-    for i in range(0, keywordNumber):
-        coefficientsArray.append([])
+    coefficientsArray = numpy.empty([keywordNumber, keywordNumber])
 
     #相関係数の計算
     for i in range(0, keywordNumber):
@@ -97,13 +90,13 @@ def main(argv):
             if (i <= j):
                 if ((totalNumbersArray[i] != 0) and (totalNumbersArray[j] != 0)):
                     if (i != j):
-                        coefficientsArray[i].append(numpy.corrcoef(numbersArray[i], numbersArray[j])[0, 1])
+                        coefficientsArray[i][j] = numpy.corrcoef(numbersArray[i], numbersArray[j])[0, 1]
                     else:
-                        coefficientsArray[i].append(1)
+                        coefficientsArray[i][j] = 1
                 else:
-                    coefficientsArray[i].append(0)
+                    coefficientsArray[i][j] = 0
             else:
-                coefficientsArray[i].append(coefficientsArray[j][i])
+                coefficientsArray[i][j] = coefficientsArray[j][i]
 
     #形態要素解析
     posArray = []
@@ -126,7 +119,7 @@ def main(argv):
     url = url[:-1]
 
     #レスポンスを取得
-    response = urllib2.urlopen(url)
+    response = urllib.request.urlopen(url)
     resdata = response.read()
 
     #XMLを解析して品詞を取得
