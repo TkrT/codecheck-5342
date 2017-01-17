@@ -12,11 +12,13 @@ import numpy
 import asyncio
 import aiohttp
 
+#Webページの取得
 @asyncio.coroutine
 def get(url):
     response = yield from aiohttp.request('GET', url)
     return (yield from response.text())
 
+#週ごとに記事件数の取得
 @asyncio.coroutine
 def getArticleNumber(data):
     global Keywords
