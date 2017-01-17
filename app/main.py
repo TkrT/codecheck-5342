@@ -26,7 +26,7 @@ def getArticleNumber(data):
 
     #検索日付の設定
     weekStartDate = startDate + datetime.timedelta(days = 7 * data[1])
-    weekEndDate = weekStartDate + datetime.timedelta(days = 6 * data[1])
+    weekEndDate = weekStartDate + datetime.timedelta(days = 6)
 
     #URLの作成と読み込み
     query = 'q=Body%3A' + Keywords[data[0]] + '%20AND%20ReleaseDate%3A%5B' + weekStartDate.strftime('%Y-%m-%d') + '%20TO%20' + weekEndDate.strftime('%Y-%m-%d') + '%5D'
