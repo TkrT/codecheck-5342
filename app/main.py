@@ -9,8 +9,42 @@ import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
 import numpy
+import asyncio
+import aiohttp
+
+@asyncio.coroutine
+def get(url):
+    response = yield from aiohttp.request('GET', url)
+    return (yield from response.text())
+
+@asyncio.coroutine
+def getArticleNumber(data):
+    global Keywords
+    global startDate
+    global numbersArray
+    global AsahiURLPrefix
+
+    #検索日付の設定
+    weekStartDate = startDate + datetime.timedelta(days = 7 * data[1])
+    weekEndDate = weekStartDate + datetime.timedelta(days = 6 * data[1])
+
+    #URLの作成と読み込み
+    query = 'q=Body%3A' + Keywords[data[0]] + '%20AND%20ReleaseDate%3A%5B' + weekStartDate.strftime('%Y-%m-%d') + '%20TO%20' + weekEndDate.strftime('%Y-%m-%d') + '%5D'
+    url = AsahiURLPrefix + query
+    page = yield from get(url)
+
+    #XMLを解析して件数を取得
+    root = ET.fromstring(page)
+    result = root.find('.//result')
+    numbersArray[data[0]][data[1]] = int(result.get('numFound'))
 
 def main(argv):
+    #global変数の定義
+    global Keywords
+    global startDate
+    global numbersArray
+    global AsahiURLPrefix
+
     #jsonを用いてキーワードをパース
     jsonString = '{"keywords":' + os.fsencode(argv[0]).decode('utf-8') + '}'
     jsonComponent = json.loads(jsonString)
@@ -35,56 +69,34 @@ def main(argv):
     weekNum = dateNum // 7
 
     #件数保存用の配列を初期化
-    totalNumbersArray = numpy.zeros(keywordNumber)
-    numbersArray = numpy.zeros([keywordNumber, weekNum])
+    totalNumbersArray = numpy.zeros(keywordNumber, numpy.int)
+    numbersArray = numpy.ones([keywordNumber, weekNum], numpy.int)
+
+    #記事検索用のプレフィックスを作成
+    AsahiURLPrefix = 'http://54.92.123.84/search?'
+    query = [
+        ('ackey', '869388c0968ae503614699f99e09d960f9ad3e12'),
+        ('rows', '1'),
+    ]
+    for item in query:
+        AsahiURLPrefix += item[0] + "=" + item[1] + "&"
 
     #記事検索
+    httpList = []
     for i in range(0, keywordNumber):
-        v = Keywords[i]
+        for j in range(0, weekNum):
+            httpList.append((i, j))
 
-        #件数を取得
-        number = -1
-        index = 0
-        while True:
-            #キーワードと検索期間からクエリを作成
-            urlprefix = 'http://54.92.123.84/search?'
-            query = [
-                ('ackey', '869388c0968ae503614699f99e09d960f9ad3e12'),
-                ('q', 'Body%3A' + v + '%20AND%20' + 'ReleaseDate%3A%5B' + startDate.strftime('%Y-%m-%d') + '%20TO%20' + endDate.strftime('%Y-%m-%d') + '%5D'),
-                ('start', str(index)),
-                ('rows', '100'),
-            ]
-            
-            #URLの形に整形
-            url = urlprefix
-            for item in query:
-                url += item[0] + "=" + item[1] + "&"
-            url = url[:-1]
+    loop = asyncio.get_event_loop()
+    f = asyncio.wait([getArticleNumber(d) for d in httpList])
+    loop.run_until_complete(f)
 
-            #レスポンスを取得
-            response = urllib.request.urlopen(url)
-            resdata = response.read()
-
-            #XMLを解析して件数を取得
-            root = ET.fromstring(resdata)
-            if (number == -1):
-                result = root.find('.//result')
-                number = int(result.get('numFound'))
-
-            #XMLを解析して週別の件数を取得
-            for e in root.getiterator("ReleaseDate"):
-                releseDate = dt.strptime(e.text, u'%Y-%m-%d')
-                week = (releseDate - startDate).days // 7
-                totalNumbersArray[i] += 1
-                numbersArray[i][week] += 1
-
-            #インデックスを更新
-            if (index > number):
-                break
-            index += 100
+    #総数の取得
+    for i in range(0, keywordNumber):
+        totalNumbersArray[i] = numbersArray[i].sum()
 
     #相関係数保存用の配列を初期化
-    coefficientsArray = numpy.empty([keywordNumber, keywordNumber])
+    coefficientsArray = numpy.empty([keywordNumber, keywordNumber], numpy.double)
 
     #相関係数の計算
     for i in range(0, keywordNumber):
