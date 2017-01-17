@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # coding: utf-8
+import os
 import sys
 import json
 import datetime
@@ -11,18 +12,18 @@ import numpy
 
 def main(argv):
     #jsonを用いてキーワードをパース
-    jsonString = '{"keywords":' + argv[0] + '}'
+    jsonString = '{"keywords":' + os.fsencode(argv[0]).decode('utf-8') + '}'
     jsonComponent = json.loads(jsonString)
-    keywordNumber = len(jsonComponent[u'keywords'])
+    keywordNumber = len(jsonComponent['keywords'])
  
     #UTF-8かつURLエンコード済みのキーワードリストを作成
     Keywords = []
     for i in range(0, keywordNumber):
-        Keywords.append(urllib.parse.quote(jsonComponent[u'keywords'][i].encode('utf-8')))
+        Keywords.append(urllib.parse.quote(jsonComponent['keywords'][i].encode('utf-8')))
 
     #開始日時と終了日時をパース
-    startDate = dt.strptime(argv[1], u'%Y-%m-%d')
-    endDate = dt.strptime(argv[2], u'%Y-%m-%d')
+    startDate = dt.strptime(os.fsencode(argv[1]).decode('utf-8'), '%Y-%m-%d')
+    endDate = dt.strptime(os.fsencode(argv[2]).decode('utf-8'), '%Y-%m-%d')
 
     #日数を取得
     dateNum = (endDate - startDate).days + 1
