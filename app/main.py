@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
 # coding: utf-8
 import os
-import sys
-import json
-import datetime
-from datetime import datetime as dt
 import urllib.parse
-import urllib.request
 import xml.etree.ElementTree as ET
+import json
 import numpy
+import datetime
 import asyncio
 import aiohttp
 
@@ -58,8 +55,8 @@ def main(argv):
         Keywords.append(urllib.parse.quote(jsonComponent['keywords'][i].encode('utf-8')))
 
     #開始日時と終了日時をパース
-    startDate = dt.strptime(os.fsencode(argv[1]).decode('utf-8'), '%Y-%m-%d')
-    endDate = dt.strptime(os.fsencode(argv[2]).decode('utf-8'), '%Y-%m-%d')
+    startDate = datetime.datetime.strptime(os.fsencode(argv[1]).decode('utf-8'), '%Y-%m-%d')
+    endDate = datetime.datetime.strptime(os.fsencode(argv[2]).decode('utf-8'), '%Y-%m-%d')
 
     #日数を取得
     dateNum = (endDate - startDate).days + 1
@@ -104,13 +101,13 @@ def main(argv):
     for i in range(0, keywordNumber):
         for j in range(0, keywordNumber):
             if (i <= j):
-                if ((totalNumbersArray[i] != 0) and (totalNumbersArray[j] != 0)):
-                    if (i != j):
+                if (i == j):
+                    coefficientsArray[i][j] = 1
+                else:
+                    if ((totalNumbersArray[i] != 0) and (totalNumbersArray[j] != 0)):
                         coefficientsArray[i][j] = numpy.corrcoef(numbersArray[i], numbersArray[j])[0, 1]
                     else:
-                        coefficientsArray[i][j] = 1
-                else:
-                    coefficientsArray[i][j] = 0
+                        coefficientsArray[i][j] = 0
             else:
                 coefficientsArray[i][j] = coefficientsArray[j][i]
 
@@ -135,8 +132,7 @@ def main(argv):
     url = url[:-1]
 
     #レスポンスを取得
-    response = urllib.request.urlopen(url)
-    resdata = response.read()
+    resdata = loop.run_until_complete(get(url))
 
     #XMLを解析して品詞を取得
     root = ET.fromstring(resdata)
@@ -180,4 +176,3 @@ def main(argv):
 
     #出力
     print(string)
-    
