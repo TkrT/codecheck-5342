@@ -170,6 +170,7 @@ def main(argv):
 
         #i = j
         string += "1" + ','
+        index += indexstart + i
 
         #i < j
         for j in range(i + 1, keywordNumber):
