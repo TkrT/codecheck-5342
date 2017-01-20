@@ -42,7 +42,7 @@ def getArticleNumber(index, numbersArray, prefix, keywords, startDate):
     #XMLを解析して件数を取得
     numbersArray[index[0]][index[1]] = analyzeAsahiXML(page)
 
-#相関係数の計算
+#相関係数の計算 (総件数が0ならNaNを返す)
 def calcCoefficients(coefficientsArray, numbersArray, keywordNumber):
     #各キーワードの総件数の計算
     totalNumbersArray = numpy.zeros(keywordNumber, numpy.int)
