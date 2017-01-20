@@ -93,7 +93,7 @@ def checkPOS(prefix, keywords, keywordNumber):
 
 def main(argv):
     #jsonを用いてキーワードをパース
-    jsonString = '{"keywords":' + os.fsencode(argv[0]).decode('utf-8') + '}'
+    jsonString = '{"keywords":' + os.fsencode(argv[0]).decode('cp932') + '}'
     jsonComponent = json.loads(jsonString)
     keywordNumber = len(jsonComponent['keywords'])
  
@@ -103,8 +103,8 @@ def main(argv):
         Keywords.append(jsonComponent['keywords'][i])
 
     #開始日時と終了日時をパース
-    startDate = datetime.datetime.strptime(os.fsencode(argv[1]).decode('utf-8'), '%Y-%m-%d')
-    endDate = datetime.datetime.strptime(os.fsencode(argv[2]).decode('utf-8'), '%Y-%m-%d')
+    startDate = datetime.datetime.strptime(os.fsencode(argv[1]).decode('cp932'), '%Y-%m-%d')
+    endDate = datetime.datetime.strptime(os.fsencode(argv[2]).decode('cp932'), '%Y-%m-%d')
 
     #週数を取得
     weekNum = getWeekNum(startDate, endDate)
@@ -170,7 +170,7 @@ def main(argv):
 
         #i = j
         string += "1" + ','
-        index += indexstart + i
+        index += i
 
         #i < j
         for j in range(i + 1, keywordNumber):
